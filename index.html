@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Omnia ERP · Gestão Financeira</title>
+<!-- ============================================================
+     OMNIA ERP FINANCEIRO
+     HTML5 + CSS3 + JavaScript puro (ES6+) — sem frameworks
+     Persistência 100% em LocalStorage
+============================================================ -->
+<style>
+/* ==========================================================
+   CSS
+========================================================== */
+:root{
+  --navy:#0F1C2E;
+  --navy-light:#16283F;
+  --navy-lighter:#1E344F;
+  --emerald:#0F9D6B;
+  --emerald-dark:#0B7A54;
+  --emerald-bg:#E7F7F1;
+  --amber:#F59E0B;
+  --red:#DC2626;
+  --red-bg:#FDECEC;
+  --slate:#475569;
+  --slate-light:#94A3B8;
+  --bg:#F5F7FA;
+  --card:#FFFFFF;
+  --border:#E2E8F0;
+  --text:#152238;
+  --text-dim:#64748B;
+  --font-display:'Manrope',system-ui,sans-serif;
+  --font-body:'Inter',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(15,28,46,.06),0 1px 8px rgba(15,28,46,.05);
+  --sidebar-w:264px;
+  --sidebar-w-collapsed:76px;
+}
+[data-theme="dark"]{
+  --bg:#0B1420;
+  --card:#111E2E;
+  --border:#223145;
+  --text:#E7EDF5;
+  --text-dim:#8AA0B8;
+  --emerald-bg:#0E2A22;
+  --red-bg:#3A1616;
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  transition:background .25s ease,color .25s ease;
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+h1,h2,h3,h4{font-family:var(--font-display);margin:0;letter-spacing:-.01em;}
+button{font-family:inherit;}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+.hidden{display:none !important;}
+::-webkit-scrollbar{height:8px;width:8px;}
+::-webkit-scrollbar-thumb{background:var(--slate-light);border-radius:8px;}
+
+/* ---------- LOGIN ---------- */
+#loginScreen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 20% 20%,#16283F 0%,#0F1C2E 55%,#0A1420 100%);
+  padding:20px;
+}
+.login-card{
+  background:var(--card);width:100%;max-width:380px;border-radius:16px;
+  padding:40px 32px 32px;box-shadow:0 20px 60px rgba(0,0,0,.35);
+  animation:riseIn .5s ease;
+}
+@keyframes riseIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.login-logo{
+  width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--emerald),var(--emerald-dark));
+  display:flex;align-items:center;justify-content:center;margin:0 auto 18px;
+  box-shadow:0 8px 20px rgba(15,157,107,.35);
+}
+.login-title{text-align:center;font-size:22px;font-weight:800;margin-bottom:2px;}
+.login-sub{text-align:center;color:var(--text-dim);font-size:13px;margin-bottom:26px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
+.field input,.field select,.field textarea{
+  width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:14.5px;background:var(--bg);color:var(--text);transition:border-color .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--emerald);}
+.field textarea{resize:vertical;min-height:64px;font-family:inherit;}
+.btn{
+  border:none;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;transition:transform .1s,filter .15s;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--emerald);color:#fff;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-block{width:100%;justify-content:center;}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+.btn-outline:hover{border-color:var(--emerald);color:var(--emerald);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-ghost{background:transparent;color:var(--text-dim);}
+.login-error{background:var(--red-bg);color:var(--red);font-size:13px;padding:9px 12px;border-radius:8px;margin-bottom:14px;display:none;}
+.login-hint{margin-top:18px;text-align:center;font-size:11.5px;color:var(--text-dim);}
+
+/* ---------- APP SHELL ---------- */
+#app{display:none;min-height:100vh;}
+#app.show{display:block;}
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--navy);
+  color:#DCE6F0;z-index:200;display:flex;flex-direction:column;transition:width .25s ease,transform .25s ease;
+  overflow:hidden;
+}
+.sidebar.collapsed{width:var(--sidebar-w-collapsed);}
+.sidebar-head{
+  display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.08);
+  white-space:nowrap;
+}
+.sidebar-head .logo-sq{width:34px;height:34px;flex:0 0 34px;border-radius:9px;background:linear-gradient(135deg,var(--emerald),var(--emerald-dark));display:flex;align-items:center;justify-content:center;}
+.sidebar-head .brand{font-family:var(--font-display);font-weight:800;font-size:16px;color:#fff;}
+.sidebar-nav{flex:1;overflow-y:auto;padding:10px 8px;}
+.nav-group-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#5E7691;padding:14px 12px 6px;font-weight:700;white-space:nowrap;}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;color:#B9C7D8;
+  cursor:pointer;font-size:13.5px;font-weight:600;white-space:nowrap;margin-bottom:2px;
+}
+.nav-item svg{flex:0 0 18px;width:18px;height:18px;opacity:.85;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+.nav-item.active{background:var(--emerald);color:#fff;}
+.nav-item.active svg{opacity:1;}
+.sidebar.collapsed .brand,.sidebar.collapsed .nav-group-label,.sidebar.collapsed .nav-item span,.sidebar.collapsed .sidebar-foot span{display:none;}
+.sidebar-foot{padding:14px 8px;border-top:1px solid rgba(255,255,255,.08);}
+.sidebar-toggle-btn{
+  width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,.08);color:#DCE6F0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;margin-left:auto;
+}
+.overlay{position:fixed;inset:0;background:rgba(10,18,30,.5);z-index:190;display:none;}
+.overlay.show{display:block;}
+
+.main{margin-left:var(--sidebar-w);min-height:100vh;transition:margin-left .25s ease;}
+.main.collapsed{margin-left:var(--sidebar-w-collapsed);}
+.topbar{
+  position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);
+  padding:12px 22px;display:flex;align-items:center;gap:14px;
+}
+.hamburger{display:none;width:38px;height:38px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;align-items:center;justify-content:center;flex:0 0 auto;}
+.breadcrumb{font-size:13px;color:var(--text-dim);flex:1;}
+.breadcrumb b{color:var(--text);font-weight:700;}
+.search-box{position:relative;width:280px;}
+.search-box input{width:100%;padding:9px 12px 9px 34px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;}
+.search-box svg{position:absolute;left:10px;top:9px;width:16px;height:16px;color:var(--text-dim);}
+.search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);max-height:340px;overflow:auto;display:none;z-index:150;}
+.search-results.show{display:block;}
+.sr-item{padding:9px 12px;font-size:12.5px;cursor:pointer;border-bottom:1px solid var(--border);}
+.sr-item:hover{background:var(--bg);}
+.sr-item small{display:block;color:var(--text-dim);}
+.icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dim);flex:0 0 auto;}
+.icon-btn:hover{color:var(--emerald);border-color:var(--emerald);}
+.user-chip{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;border-radius:20px;background:var(--bg);cursor:pointer;flex:0 0 auto;}
+.user-chip .av{width:26px;height:26px;border-radius:50%;background:var(--emerald);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.user-chip span{font-size:12.5px;font-weight:600;}
+
+.content{padding:22px;max-width:1400px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.page-header h1{font-size:21px;}
+.page-header p{margin:2px 0 0;color:var(--text-dim);font-size:13px;}
+
+/* KPI cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px;}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+.kpi-card .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);font-weight:700;display:flex;align-items:center;gap:6px;}
+.kpi-card .val{font-family:var(--font-mono);font-size:22px;font-weight:600;margin-top:8px;}
+.kpi-card .val.pos{color:var(--emerald);}
+.kpi-card .val.neg{color:var(--red);}
+.kpi-card .delta{font-size:11.5px;color:var(--text-dim);margin-top:4px;}
+
+.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;}
+.card h3{font-size:15px;margin-bottom:12px;}
+
+/* Tables */
+.table-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.table-toolbar .search-box{width:240px;}
+.table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px;}
+thead th{background:var(--bg);text-align:left;padding:11px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-dim);font-weight:700;cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--border);}
+thead th:hover{color:var(--emerald);}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr:hover{background:var(--bg);}
+tbody tr:last-child td{border-bottom:none;}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge.green{background:var(--emerald-bg);color:var(--emerald-dark);}
+.badge.red{background:var(--red-bg);color:var(--red);}
+.badge.amber{background:#FEF3C7;color:#92400E;}
+.badge.gray{background:var(--bg);color:var(--text-dim);}
+.row-actions{display:flex;gap:6px;}
+.row-actions button{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dim);}
+.row-actions button:hover{color:var(--emerald);border-color:var(--emerald);}
+.pagination{display:flex;justify-content:flex-end;gap:6px;padding:12px 14px;align-items:center;font-size:12.5px;color:var(--text-dim);}
+.pagination button{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;}
+.pagination button:disabled{opacity:.4;cursor:default;}
+.empty-state{padding:50px 20px;text-align:center;color:var(--text-dim);}
+.empty-state svg{width:44px;height:44px;margin-bottom:10px;opacity:.5;}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,18,30,.55);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
+.modal-backdrop.show{display:flex;}
+.modal{background:var(--card);border-radius:14px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:riseIn .2s ease;}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.modal-head h3{font-size:16px;}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:18px;}
+.modal-body{padding:20px 22px;max-height:60vh;overflow-y:auto;}
+.modal-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+.form-grid .full{grid-column:1/-1;}
+@media(max-width:520px){.form-grid{grid-template-columns:1fr;}}
+
+/* Toasts */
+#toastWrap{position:fixed;bottom:20px;right:20px;z-index:500;display:flex;flex-direction:column;gap:10px;}
+.toast{background:var(--navy);color:#fff;padding:12px 16px;border-radius:10px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;min-width:220px;animation:toastIn .25s ease;}
+.toast.err{background:var(--red);}
+.toast.ok{background:var(--emerald-dark);}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+
+/* Login/menu icon */
+.svg-ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* responsive */
+@media(max-width:960px){
+  .sidebar{transform:translateX(-100%);width:264px;}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .main,.main.collapsed{margin-left:0;}
+  .hamburger{display:flex;}
+  .grid-2{grid-template-columns:1fr;}
+  .search-box{width:170px;}
+  .table-toolbar .search-box{width:100%;}
+}
+@media(max-width:560px){
+  .content{padding:14px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .search-box{display:none;}
+}
+.tag-switch{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
+.tag-switch button{border:none;background:transparent;padding:6px 12px;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text-dim);}
+.tag-switch button.active{background:var(--card);color:var(--emerald);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.filters-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.filters-row select,.filters-row input{padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:12.5px;}
+.progress-bar{height:8px;background:var(--bg);border-radius:6px;overflow:hidden;margin-top:6px;}
+.progress-bar > div{height:100%;background:var(--emerald);}
+.list-mini{font-size:12.5px;}
+.list-mini li{padding:7px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px;}
+.list-mini li:last-child{border:none;}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HTML
+============================================================ -->
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg class="svg-ico" style="stroke:#fff;width:26px;height:26px" viewBox="0 0 24 24"><path d="M3 12l4-8 4 8 4-8 4 8"/><path d="M3 18h18"/></svg>
+    </div>
+    <div class="login-title" id="loginBrandName">Omnia ERP</div>
+    <div class="login-sub">Gestão Financeira Empresarial</div>
+    <div class="login-error" id="loginError">Usuário ou senha inválidos.</div>
+    <form id="loginForm">
+      <div class="field"><label>Usuário</label><input type="text" id="loginUser" autocomplete="username" required></div>
+      <div class="field"><label>Senha</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+    <div class="login-hint">Usuário inicial: <b>admin</b> · Senha: <b>J@12D#03</b></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="overlay" id="overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="logo-sq"><svg class="svg-ico" style="stroke:#fff" viewBox="0 0 24 24"><path d="M3 12l4-8 4 8 4-8 4 8"/><path d="M3 18h18"/></svg></div>
+      <div class="brand" id="sidebarBrand">Omnia ERP</div>
+      <button class="sidebar-toggle-btn" id="collapseBtn" title="Recolher menu"><svg class="svg-ico" style="stroke:#DCE6F0" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-foot">
+      <div class="nav-item" data-nav="logout"><svg class="svg-ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sair</span></div>
+    </div>
+  </aside>
+
+  <div class="main" id="mainArea">
+    <header class="topbar">
+      <button class="hamburger" id="hamburgerBtn"><svg class="svg-ico" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+      <div class="search-box">
+        <svg class="svg-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="text" id="globalSearch" placeholder="Pesquisar clientes, contas, documentos...">
+        <div class="search-results" id="searchResults"></div>
+      </div>
+      <button class="icon-btn" id="themeBtn" title="Alternar tema"><svg class="svg-ico" viewBox="0 0 24 24"><path d="M12 3v1M12 20v1M4.2 4.2l.7.7M18.4 18.4l.7.7M3 12h1M20 12h1M4.2 19.8l.7-.7M18.4 5.6l.7-.7"/><circle cx="12" cy="12" r="4"/></svg></button>
+      <div class="user-chip" id="logoutBtn"><div class="av" id="userAv">A</div><span id="userName">admin</span></div>
+    </header>
+    <main class="content" id="pageContent"></main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalTitle">Novo registro</h3><button class="modal-close" id="modalClose">&times;</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="modalCancel">Cancelar</button>
+      <button class="btn btn-primary" id="modalSave">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+<input type="file" id="restoreFileInput" accept=".json" class="hidden">
+
+<script>
+/* ==========================================================
+   JAVASCRIPT
+========================================================== */
+(function(){
+'use strict';
+
+/* ---------- CONSTANTES / STORAGE ---------- */
+const LS_PREFIX = 'erpfin_';
+const K = {
+  usuarios:'usuarios', clientes:'clientes', fornecedores:'fornecedores', planoContas:'planoContas',
+  centrosCustos:'centrosCustos', categorias:'categorias', contasReceber:'contasReceber', contasPagar:'contasPagar',
+  bancos:'bancos', cartoes:'cartoes', conciliacoes:'conciliacoes', lancamentos:'lancamentos',
+  orcamentos:'orcamentos', caixaMov:'caixaMov', auditoria:'auditoria', configuracoes:'configuracoes',
+  sidebarState:'sidebarState', theme:'theme', session:'session'
+};
+function lsGet(key, def){ try{ const v = localStorage.getItem(LS_PREFIX+key); return v?JSON.parse(v):(def!==undefined?def:[]); }catch(e){ return def!==undefined?def:[]; } }
+function lsSet(key, val){ localStorage.setItem(LS_PREFIX+key, JSON.stringify(val)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function nowISO(){ return new Date().toISOString(); }
+function fmtDate(iso){ if(!iso) return '-'; const d=new Date(iso); return d.toLocaleDateString('pt-BR'); }
+function fmtDateTime(iso){ if(!iso) return '-'; const d=new Date(iso); return d.toLocaleString('pt-BR'); }
+function money(v){ v = Number(v)||0; const cur = getConfig().moeda||'BRL'; const sym = cur==='USD'?'US$':cur==='EUR'?'€':'R$'; return sym+' '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+/* ---------- SEED INICIAL ---------- */
+function seed(){
+  if(lsGet(K.usuarios,null)===null){
+    lsSet(K.usuarios,[{id:uid(),usuario:'admin',senha:'J@12D#03',nome:'Administrador',perfil:'Administrador',status:'Ativo',criadoEm:nowISO()}]);
+  }
+  if(lsGet(K.configuracoes,null)===null){
+    lsSet(K.configuracoes,{empresa:'Omnia ERP', logo:'', tema:'light', idioma:'pt-BR', moeda:'BRL'});
+  }
+  ['clientes','fornecedores','planoContas','centrosCustos','categorias','contasReceber','contasPagar','bancos','cartoes','conciliacoes','lancamentos','orcamentos','caixaMov','auditoria'].forEach(k=>{
+    if(lsGet(K[k],null)===null) lsSet(K[k],[]);
+  });
+}
+function getConfig(){ return lsGet(K.configuracoes,{empresa:'Omnia ERP',tema:'light',moeda:'BRL'}); }
+
+/* ---------- AUDITORIA ---------- */
+function audit(acao, tela, detalhe){
+  const list = lsGet(K.auditoria,[]);
+  const sess = getSession();
+  list.unshift({id:uid(), usuario:sess?sess.usuario:'-', acao, tela, detalhe:detalhe||'', data:nowISO(), navegador:navigator.userAgent.split(') ')[0]+')'});
+  lsSet(K.auditoria, list.slice(0,2000));
+}
+
+/* ---------- SESSÃO ---------- */
+let inactivityTimer=null;
+function getSession(){ try{ return JSON.parse(sessionStorage.getItem('erpfin_session')); }catch(e){ return null; } }
+function setSession(u){ sessionStorage.setItem('erpfin_session', JSON.stringify(u)); }
+function clearSession(){ sessionStorage.removeItem('erpfin_session'); }
+function resetInactivity(){
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(()=>{ toast('Sessão encerrada por inatividade.','err'); doLogout(); }, 15*60*1000);
+}
+['click','keydown','mousemove','scroll'].forEach(ev=>document.addEventListener(ev, ()=>{ if(getSession()) resetInactivity(); }));
+
+/* ---------- TOASTS ---------- */
+function toast(msg, type){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast'+(type==='err'?' err':type==='ok'?' ok':'');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+}
+function confirmDialog(msg){ return window.confirm(msg); }
+
+/* ---------- LOGIN ---------- */
+seed();
+(function initTheme(){
+  const cfg = getConfig();
+  const theme = localStorage.getItem(LS_PREFIX+'theme') || cfg.tema || 'light';
+  document.body.setAttribute('data-theme', theme);
+})();
+document.getElementById('loginBrandName').textContent = getConfig().empresa || 'Omnia ERP';
+
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const users = lsGet(K.usuarios,[]);
+  const found = users.find(x=>x.usuario===u && x.senha===p);
+  const errEl = document.getElementById('loginError');
+  if(!found){ errEl.style.display='block'; return; }
+  if(found.status==='Inativo'){ errEl.textContent='Usuário inativo. Contate o administrador.'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  setSession({id:found.id, usuario:found.usuario, nome:found.nome, perfil:found.perfil});
+  audit('Login','Autenticação','Usuário '+found.usuario+' autenticado.');
+  document.getElementById('loginScreen').style.display='none';
+  startApp();
+});
+
+function doLogout(){
+  const sess=getSession();
+  if(sess) audit('Logout','Autenticação','Usuário '+sess.usuario+' encerrou a sessão.');
+  clearSession();
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginForm').reset();
+}
+
+/* checar sessão existente ao carregar */
+window.addEventListener('DOMContentLoaded', ()=>{
+  if(getSession()){
+    document.getElementById('loginScreen').style.display='none';
+    startApp();
+  }
+});
+
+/* ---------- MENU / NAVEGAÇÃO ---------- */
+const ICONS = {
+  dashboard:'<path d="M3 3h8v8H3zM13 3h8v5h-8zM13 12h8v9h-8zM3 15h8v6H3z"/>',
+  planoContas:'<path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/>',
+  centrosCustos:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/>',
+  receber:'<path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>',
+  pagar:'<path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>',
+  fluxo:'<path d="M3 17l5-5 4 4 8-9"/><path d="M14 7h6v6"/>',
+  caixa:'<rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 3H8v4h8z"/>',
+  bancos:'<path d="M3 21h18M4 21V10M20 21V10M2 10l10-6 10 6M9 21v-7M15 21v-7"/>',
+  cartoes:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  conciliacao:'<path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/>',
+  clientes:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.9 3.1-7 7-7s7 3.1 7 7M17 8a3.5 3.5 0 110 7M23 20c0-2.8-1.9-5.1-4.5-6"/>',
+  fornecedores:'<path d="M3 21h18M5 21V10l7-6 7 6v11M9 21v-6h6v6"/>',
+  categorias:'<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>',
+  lancamentos:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+  orcamentos:'<path d="M4 20V10M12 20V4M20 20v-7"/>',
+  relatorios:'<path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5M9 13h6M9 17h6"/>',
+  indicadores:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+  usuarios:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/><path d="M17 11a3 3 0 100-6"/><path d="M22 20c0-2.6-1.7-4.8-4-5.6"/>',
+  config:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6V21a2 2 0 11-4 0v-.2a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 112.8-2.8l.1-.1c.4-.4.6-1.1.3-1.9-.3-.7-.9-1.1-1.6-1.1H3a2 2 0 110-4h.2c.7 0 1.3-.4 1.6-1 .3-.8.1-1.5-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1c.4.4 1.1.6 1.9.3H9c.7-.3 1.1-.9 1.1-1.6V3a2 2 0 114 0v.2c0 .7.4 1.3 1.1 1.6.7.3 1.5.1 1.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1c-.4.4-.6 1.1-.3 1.9v.1c.3.7.9 1.1 1.6 1.1h.2a2 2 0 110 4h-.2c-.7 0-1.3.4-1.6 1.1z"/>',
+  backup:'<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/>',
+  restaurar:'<path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5.5 9a7 7 0 0112.4-2M18.5 15a7 7 0 01-12.4 2"/>',
+  sobre:'<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>'
+};
+function ico(name){ return '<svg class="svg-ico" viewBox="0 0 24 24">'+ICONS[name]+'</svg>'; }
+
+const MENU = [
+  {group:'Geral', items:[
+    {key:'dashboard', label:'Dashboard', icon:'dashboard'},
+  ]},
+  {group:'Cadastros', items:[
+    {key:'planoContas', label:'Plano de Contas', icon:'planoContas'},
+    {key:'centrosCustos', label:'Centros de Custos', icon:'centrosCustos'},
+    {key:'clientes', label:'Clientes', icon:'clientes'},
+    {key:'fornecedores', label:'Fornecedores', icon:'fornecedores'},
+    {key:'categorias', label:'Categorias Financeiras', icon:'categorias'},
+  ]},
+  {group:'Financeiro', items:[
+    {key:'contasReceber', label:'Contas a Receber', icon:'receber'},
+    {key:'contasPagar', label:'Contas a Pagar', icon:'pagar'},
+    {key:'fluxoCaixa', label:'Fluxo de Caixa', icon:'fluxo'},
+    {key:'caixa', label:'Caixa', icon:'caixa'},
+    {key:'bancos', label:'Bancos', icon:'bancos'},
+    {key:'cartoes', label:'Cartões', icon:'cartoes'},
+    {key:'conciliacoes', label:'Conciliação Bancária', icon:'conciliacao'},
+    {key:'lancamentos', label:'Lançamentos', icon:'lancamentos'},
+    {key:'orcamentos', label:'Orçamentos', icon:'orcamentos'},
+  ]},
+  {group:'Análise', items:[
+    {key:'relatorios', label:'Relatórios', icon:'relatorios'},
+    {key:'indicadores', label:'Indicadores', icon:'indicadores'},
+  ]},
+  {group:'Sistema', items:[
+    {key:'usuarios', label:'Usuários', icon:'usuarios', adminOnly:true},
+    {key:'configuracoes', label:'Configurações', icon:'config', adminOnly:true},
+    {key:'backup', label:'Backup', icon:'backup', adminOnly:true},
+    {key:'restaurar', label:'Restaurar', icon:'restaurar', adminOnly:true},
+    {key:'sobre', label:'Sobre', icon:'sobre'},
+  ]},
+];
+const MENU_LABELS = {}; MENU.forEach(g=>g.items.forEach(i=>MENU_LABELS[i.key]=i.label));
+
+let currentRoute = 'dashboard';
+
+function buildSidebar(){
+  const sess = getSession();
+  const isAdmin = sess && sess.perfil==='Administrador';
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML='';
+  MENU.forEach(group=>{
+    const items = group.items.filter(it=> !it.adminOnly || isAdmin);
+    if(!items.length) return;
+    const gl = document.createElement('div'); gl.className='nav-group-label'; gl.textContent=group.group;
+    nav.appendChild(gl);
+    items.forEach(it=>{
+      const div = document.createElement('div');
+      div.className='nav-item'; div.dataset.nav=it.key;
+      div.innerHTML = ico(it.icon)+'<span>'+it.label+'</span>';
+      div.addEventListener('click', ()=>{ navigate(it.key); if(window.innerWidth<=960) closeMobileSidebar(); });
+      nav.appendChild(div);
+    });
+  });
+}
+
+function navigate(key){
+  if(key==='logout'){ if(confirmDialog('Deseja realmente sair do sistema?')) doLogout(); return; }
+  currentRoute = key;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.nav===key));
+  document.getElementById('breadcrumb').innerHTML = 'Omnia ERP <span style="opacity:.5">/</span> <b>'+(MENU_LABELS[key]||key)+'</b>';
+  render(key);
+  window.scrollTo(0,0);
+}
+document.querySelector('.sidebar-foot [data-nav="logout"]').addEventListener('click', ()=>{ if(confirmDialog('Deseja realmente sair do sistema?')) doLogout(); });
+document.getElementById('logoutBtn').addEventListener('click', ()=>{ if(confirmDialog('Deseja realmente sair do sistema?')) doLogout(); });
+
+/* Sidebar collapse / mobile */
+document.getElementById('collapseBtn').addEventListener('click', ()=>{
+  const sb = document.getElementById('sidebar'); const main = document.getElementById('mainArea');
+  const collapsed = sb.classList.toggle('collapsed'); main.classList.toggle('collapsed', collapsed);
+  localStorage.setItem(LS_PREFIX+K.sidebarState, collapsed?'1':'0');
+});
+document.getElementById('hamburgerBtn').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.add('mobile-open');
+  document.getElementById('overlay').classList.add('show');
+});
+function closeMobileSidebar(){ document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('overlay').classList.remove('show'); }
+document.getElementById('overlay').addEventListener('click', closeMobileSidebar);
+
+/* Tema */
+document.getElementById('themeBtn').addEventListener('click', ()=>{
+  const cur = document.body.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.body.setAttribute('data-theme', cur);
+  localStorage.setItem(LS_PREFIX+'theme', cur);
+});
+
+/* Busca global */
+const SEARCHABLE = [
+  {key:'clientes', label:'Cliente', fields:['nome','cpfCnpj','codigo']},
+  {key:'fornecedores', label:'Fornecedor', fields:['nome','cpfCnpj','codigo']},
+  {key:'contasReceber', label:'Conta a Receber', fields:['documento','cliente']},
+  {key:'contasPagar', label:'Conta a Pagar', fields:['documento','fornecedor']},
+  {key:'categorias', label:'Categoria', fields:['nome']},
+  {key:'planoContas', label:'Plano de Contas', fields:['conta','codigo']},
+  {key:'bancos', label:'Banco', fields:['banco','agencia','conta']},
+  {key:'centrosCustos', label:'Centro de Custo', fields:['nome','codigo']},
+];
+document.getElementById('globalSearch').addEventListener('input', function(){
+  const q = this.value.trim().toLowerCase();
+  const box = document.getElementById('searchResults');
+  if(!q){ box.classList.remove('show'); box.innerHTML=''; return; }
+  let results = [];
+  SEARCHABLE.forEach(s=>{
+    const list = lsGet(K[s.key],[]);
+    list.forEach(item=>{
+      const match = s.fields.some(f=> (item[f]||'').toString().toLowerCase().includes(q));
+      if(match) results.push({entity:s.key, label:s.label, item});
+    });
+  });
+  results = results.slice(0,12);
+  box.innerHTML = results.length ? results.map(r=>`<div class="sr-item" data-ent="${r.entity}" data-id="${r.item.id}"><b>${(r.item.nome||r.item.conta||r.item.documento||r.item.banco||'Registro')}</b><small>${r.label}</small></div>`).join('') : '<div class="sr-item">Nenhum resultado encontrado.</div>';
+  box.classList.add('show');
+  box.querySelectorAll('.sr-item[data-ent]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      navigate(el.dataset.ent);
+      box.classList.remove('show'); document.getElementById('globalSearch').value='';
+      setTimeout(()=>openForm(el.dataset.ent, el.dataset.id),150);
+    });
+  });
+});
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.search-box')) document.getElementById('searchResults').classList.remove('show');
+});
+
+/* ---------- SCHEMAS (CRUD genérico) ---------- */
+function opts(list, valueKey, labelKey){ return ()=> lsGet(K[list],[]).map(i=>({value:i[valueKey], label:i[labelKey]})); }
+
+const SCHEMAS = {
+  planoContas:{ title:'Plano de Contas', icon:'planoContas',
+    columns:[{k:'codigo',l:'Código'},{k:'conta',l:'Conta'},{k:'tipo',l:'Tipo'},{k:'grupo',l:'Grupo'},{k:'status',l:'Status',badge:true}],
+    fields:[
+      {k:'codigo',l:'Código',req:true},{k:'conta',l:'Conta',req:true,full:true},
+      {k:'tipo',l:'Tipo',type:'select',options:['Receita','Despesa','Ativo','Passivo','Patrimônio Líquido']},
+      {k:'natureza',l:'Natureza',type:'select',options:['Devedora','Credora']},
+      {k:'grupo',l:'Grupo'},{k:'subgrupo',l:'Subgrupo'},
+      {k:'contaPai',l:'Conta Pai'},{k:'status',l:'Status',type:'select',options:['Ativo','Inativo']},
+      {k:'obs',l:'Observações',type:'textarea',full:true},
+    ]},
+  centrosCustos:{ title:'Centros de Custos', icon:'centrosCustos',
+    columns:[{k:'codigo',l:'Código'},{k:'nome',l:'Nome'},{k:'responsavel',l:'Responsável'},{k:'departamento',l:'Departamento'},{k:'orcamento',l:'Orçamento',money:true}],
+    fields:[
+      {k:'codigo',l:'Código',req:true},{k:'nome',l:'Nome',req:true},
+      {k:'responsavel',l:'Responsável'},{k:'departamento',l:'Departamento'},
+      {k:'orcamento',l:'Orçamento (R$)',type:'number'},
+      {k:'obs',l:'Observações',type:'textarea',full:true},
+    ]},
+  clientes:{ title:'Clientes', icon:'clientes',
+    columns:[{k:'codigo',l:'Código'},{k:'nome',l:'Nome'},{k:'cpfCnpj',l:'CPF/CNPJ'},{k:'cidade',l:'Cidade'},{k:'telefones',l:'Telefone'}],
+    fields:[
+      {k:'codigo',l:'Código',req:true},{k:'nome',l:'Nome',req:true,full:true},
+      {k:'cpfCnpj',l:'CPF/CNPJ'},{k:'email',l:'E-mail'},
+      {k:'endereco',l:'Endereço',full:true},{k:'cidade',l:'Cidade'},{k:'estado',l:'Estado'},{k:'cep',l:'CEP'},
+      {k:'telefones',l:'Telefones'},{k:'limiteCredito',l:'Limite de Crédito (R$)',type:'number'},
+      {k:'condicaoPagamento',l:'Condição de Pagamento'},
+      {k:'obs',l:'Observações',type:'textarea',full:true},
+    ]},
+  fornecedores:{ title:'Fornecedores', icon:'fornecedores',
+    columns:[{k:'codigo',l:'Código'},{k:'nome',l:'Nome'},{k:'cpfCnpj',l:'CPF/CNPJ'},{k:'categoria',l:'Categoria'},{k:'contato',l:'Contato'}],
+    fields:[
+      {k:'codigo',l:'Código',req:true},{k:'nome',l:'Nome',req:true,full:true},
+      {k:'cpfCnpj',l:'CPF/CNPJ'},{k:'contato',l:'Contato'},
+      {k:'banco',l:'Banco'},{k:'agencia',l:'Agência'},{k:'conta',l:'Conta'},{k:'pix',l:'PIX'},
+      {k:'categoria',l:'Categoria'},
+      {k:'obs',l:'Observações',type:'textarea',full:true},
+    ]},
+  categorias:{ title:'Categorias Financeiras', icon:'categorias',
+    columns:[{k:'nome',l:'Nome'},{k:'tipo',l:'Tipo'},{k:'status',l:'Status',badge:true}],
+    fields:[
+      {k:'nome',l:'Nome',req:true,full:true},
+      {k:'tipo',l:'Tipo',type:'select',options:['Receita','Despesa']},
+      {k:'status',l:'Status',type:'select',options:['Ativo','Inativo']},
+    ]},
+  bancos:{ title:'Bancos', icon:'bancos',
+    columns:[{k:'banco',l:'Banco'},{k:'agencia',l:'Agência'},{k:'conta',l:'Conta'},{k:'tipo',l:'Tipo'},{k:'saldo',l:'Saldo',money:true}],
+    fields:[
+      {k:'banco',l:'Banco',req:true},{k:'agencia',l:'Agência'},{k:'conta',l:'Conta'},
+      {k:'tipo',l:'Tipo',type:'select',options:['Conta Corrente','Poupança','Conta Pagamento']},
+      {k:'saldo',l:'Saldo (R$)',type:'number'},{k:'pix',l:'PIX'},{k:'responsavel',l:'Responsável'},
+    ]},
+  cartoes:{ title:'Cartões', icon:'cartoes',
+    columns:[{k:'cartao',l:'Cartão'},{k:'bandeira',l:'Bandeira'},{k:'banco',l:'Banco'},{k:'limite',l:'Limite',money:true},{k:'saldoUtilizado',l:'Utilizado',money:true}],
+    fields:[
+      {k:'cartao',l:'Cartão',req:true},{k:'bandeira',l:'Bandeira',type:'select',options:['Visa','Mastercard','Elo','Amex','Outra']},
+      {k:'banco',l:'Banco'},{k:'limite',l:'Limite (R$)',type:'number'},
+      {k:'melhorDia',l:'Melhor Dia',type:'number'},{k:'fechamento',l:'Fechamento',type:'number'},{k:'vencimento',l:'Vencimento',type:'number'},
+      {k:'saldoUtilizado',l:'Saldo Utilizado (R$)',type:'number'},
+    ]},
+  conciliacoes:{ title:'Conciliação Bancária', icon:'conciliacao',
+    columns:[{k:'data',l:'Data',date:true},{k:'extrato',l:'Extrato'},{k:'lancamento',l:'Lançamento'},{k:'diferenca',l:'Diferença',money:true},{k:'situacao',l:'Situação',badge:true}],
+    fields:[
+      {k:'data',l:'Data',type:'date',req:true},{k:'extrato',l:'Extrato (valor)',type:'number'},
+      {k:'lancamento',l:'Lançamento (valor)',type:'number'},{k:'diferenca',l:'Diferença',type:'number'},
+      {k:'situacao',l:'Situação',type:'select',options:['Conciliado','Pendente','Divergente']},
+      {k:'obs',l:'Observações / Ajustes',type:'textarea',full:true},
+    ]},
+  orcamentos:{ title:'Orçamentos', icon:'orcamentos',
+    columns:[{k:'categoria',l:'Categoria'},{k:'centroCusto',l:'Centro de Custo'},{k:'valorPrevisto',l:'Previsto',money:true},{k:'valorRealizado',l:'Realizado',money:true}],
+    fields:[
+      {k:'categoria',l:'Categoria',type:'select',optionsFn:opts('categorias','nome','nome'),req:true},
+      {k:'centroCusto',l:'Centro de Custo',type:'select',optionsFn:opts('centrosCustos','nome','nome')},
+      {k:'valorPrevisto',l:'Valor Previsto (R$)',type:'number'},{k:'valorRealizado',l:'Valor Realizado (R$)',type:'number'},
+    ]},
+  contasReceber:{ title:'Contas a Receber', icon:'receber',
+    columns:[{k:'cliente',l:'Cliente'},{k:'documento',l:'Documento'},{k:'valor',l:'Valor',money:true},{k:'vencimento',l:'Vencimento',date:true},{k:'status',l:'Status',badge:true}],
+    fields:[
+      {k:'cliente',l:'Cliente',type:'select',optionsFn:opts('clientes','nome','nome'),req:true},
+      {k:'documento',l:'Documento'},
+      {k:'categoria',l:'Categoria',type:'select',optionsFn:opts('categorias','nome','nome')},
+      {k:'centroCusto',l:'Centro de Custo',type:'select',optionsFn:opts('centrosCustos','nome','nome')},
+      {k:'valor',l:'Valor (R$)',type:'number',req:true},{k:'juros',l:'Juros (R$)',type:'number'},
+      {k:'multa',l:'Multa (R$)',type:'number'},{k:'desconto',l:'Desconto (R$)',type:'number'},
+      {k:'emissao',l:'Data de Emissão',type:'date'},{k:'vencimento',l:'Vencimento',type:'date',req:true},
+      {k:'recebimento',l:'Data de Recebimento',type:'date'},
+      {k:'status',l:'Status',type:'select',options:['Em aberto','Recebido','Vencido','Cancelado']},
+      {k:'formaPagamento',l:'Forma de Pagamento',type:'select',options:['PIX','Boleto','Cartão','Dinheiro','Transferência']},
+      {k:'banco',l:'Banco',type:'select',optionsFn:opts('bancos','banco','banco')},
+      {k:'obs',l:'Observações',type:'textarea',full:true},
+    ]},
+  contasPagar:{ title:'Contas a Pagar', icon:'pagar',
+    columns:[{k:'fornecedor',l:'Fornecedor'},{k:'documento',l:'Documento'},{k:'valor',l:'Valor',money:true},{k:'vencimento',l:'Vencimento',date:true},{k:'status',l:'Status',badge:true}],
+    fields:[
+      {k:'fornecedor',l:'Fornecedor',type:'select',optionsFn:opts('fornecedores','nome','nome'),req:true},
+      {k:'documento',l:'Documento'},
+      {k:'categoria',l:'Categoria',type:'select',optionsFn:opts('categorias','nome','nome')},
+      {k:'centroCusto',l:'Centro de Custo',type:'select',optionsFn:opts('centrosCustos','nome','nome')},
+      {k:'valor',l:'Valor (R$)',type:'number',req:true},{k:'juros',l:'Juros (R$)',type:'number'},
+      {k:'multa',l:'Multa (R$)',type:'number'},{k:'desconto',l:'Desconto (R$)',type:'number'},
+      {k:'emissao',l:'Data de Emissão',type:'date'},{k:'vencimento',l:'Vencimento',type:'date',req:true},
+      {k:'pagamento',l:'Data de Pagamento',type:'date'},
+      {k:'status',l:'Status',type:'select',options:['Em aberto','Pago','Vencido','Cancelado']},
+      {k:'formaPagamento',l:'Forma de Pagamento',type:'select',options:['PIX','Boleto','Cartão','Dinheiro','Transferência']},
+      {k:'banco',l:'Banco',type:'select',optionsFn:opts('bancos','banco','banco')},
+      {k:'obs',l:'Observações',type:'textarea',full:true},
+    ]},
+  lancamentos:{ title:'Lançamentos Financeiros', icon:'lancamentos',
+    columns:[{k:'tipo',l:'Tipo',badge:true},{k:'categoria',l:'Categoria'},{k:'valor',l:'Valor',money:true},{k:'data',l:'Data',date:true},{k:'responsavel',l:'Responsável'}],
+    fields:[
+      {k:'tipo',l:'Tipo',type:'select',options:['Receita','Despesa','Transferência','Ajuste','Estorno'],req:true},
+      {k:'categoria',l:'Categoria',type:'select',optionsFn:opts('categorias','nome','nome')},
+      {k:'conta',l:'Conta',type:'select',optionsFn:opts('planoContas','conta','conta')},
+      {k:'centroCusto',l:'Centro de Custo',type:'select',optionsFn:opts('centrosCustos','nome','nome')},
+      {k:'valor',l:'Valor (R$)',type:'number',req:true},{k:'data',l:'Data',type:'date',req:true},
+      {k:'documento',l:'Documento'},{k:'historico',l:'Histórico',full:true},
+      {k:'responsavel',l:'Responsável'},
+    ]},
+  usuarios:{ title:'Usuários', icon:'usuarios',
+    columns:[{k:'usuario',l:'Usuário'},{k:'nome',l:'Nome'},{k:'perfil',l:'Perfil'},{k:'status',l:'Status',badge:true}],
+    fields:[
+      {k:'usuario',l:'Usuário',req:true},{k:'senha',l:'Senha',type:'password',req:true},
+      {k:'nome',l:'Nome Completo',full:true},
+      {k:'perfil',l:'Perfil',type:'select',options:['Administrador','Financeiro','Contador','Gerente','Auditor','Consulta']},
+      {k:'status',l:'Status',type:'select',options:['Ativo','Inativo']},
+    ]},
+};
+
+/* Status -> cor do badge */
+function badgeClass(v){
+  const s=(v||'').toLowerCase();
+  if(['ativo','recebido','pago','conciliado'].includes(s)) return 'green';
+  if(['inativo','vencido','divergente','cancelado'].includes(s)) return 'red';
+  if(['pendente','em aberto'].includes(s)) return 'amber';
+  return 'gray';
+}
+
+/* Estado de tabela por entidade (busca/pag/sort) */
+const tableState = {};
+function getTableState(key){
+  if(!tableState[key]) tableState[key] = {q:'', page:1, perPage:8, sortKey:null, sortDir:1};
+  return tableState[key];
+}
+
+/* ---------- RENDER TABELA GENÉRICA ---------- */
+function renderCrudPage(entityKey){
+  const schema = SCHEMAS[entityKey];
+  const st = getTableState(entityKey);
+  let data = lsGet(K[entityKey],[]);
+
+  if(st.q){
+    const q = st.q.toLowerCase();
+    data = data.filter(item => schema.columns.some(c => (item[c.k]||'').toString().toLowerCase().includes(q)));
+  }
+  if(st.sortKey){
+    data = [...data].sort((a,b)=>{
+      let va=a[st.sortKey], vb=b[st.sortKey];
+      if(!isNaN(parseFloat(va)) && !isNaN(parseFloat(vb))){ va=parseFloat(va)||0; vb=parseFloat(vb)||0; }
+      if(va<vb) return -1*st.sortDir; if(va>vb) return 1*st.sortDir; return 0;
+    });
+  }
+  const total = data.length;
+  const pages = Math.max(1, Math.ceil(total/st.perPage));
+  st.page = Math.min(st.page, pages);
+  const pageData = data.slice((st.page-1)*st.perPage, st.page*st.perPage);
+
+  let html = `
+    <div class="page-header">
+      <div><h1>${schema.title}</h1><p>${total} registro(s) cadastrado(s)</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="ERP.exportEntity('${entityKey}','csv')">Exportar CSV</button>
+        <button class="btn btn-outline" onclick="window.print()">Imprimir</button>
+        <button class="btn btn-primary" onclick="ERP.openForm('${entityKey}')">${ico('lancamentos')} Novo</button>
+      </div>
+    </div>
+    <div class="table-toolbar">
+      <div class="search-box" style="width:280px">
+        <svg class="svg-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="text" placeholder="Pesquisar..." value="${st.q}" oninput="ERP.setSearch('${entityKey}',this.value)">
+      </div>
+    </div>
+    <div class="table-wrap">`;
+
+  if(!pageData.length){
+    html += `<div class="empty-state">${ico('lancamentos')}<div>Nenhum registro encontrado.</div></div>`;
+  } else {
+    html += '<table><thead><tr>';
+    schema.columns.forEach(c=> html += `<th onclick="ERP.sortBy('${entityKey}','${c.k}')">${c.l} ${st.sortKey===c.k?(st.sortDir===1?'▲':'▼'):''}</th>`);
+    html += '<th>Ações</th></tr></thead><tbody>';
+    pageData.forEach(item=>{
+      html += '<tr>';
+      schema.columns.forEach(c=>{
+        let v = item[c.k];
+        if(c.money) v = money(v);
+        else if(c.date) v = fmtDate(v);
+        else if(c.badge) v = `<span class="badge ${badgeClass(v)}">${v||'-'}</span>`;
+        else v = v || '-';
+        html += `<td>${v}</td>`;
+      });
+      html += `<td class="row-actions">
+        <button onclick="ERP.openForm('${entityKey}','${item.id}')" title="Editar">${ico('lancamentos')}</button>
+        <button onclick="ERP.deleteItem('${entityKey}','${item.id}')" title="Excluir">✕</button>
+      </td></tr>`;
+    });
+    html += '</tbody></table>';
+    html += `<div class="pagination">
+      <span>Página ${st.page} de ${pages}</span>
+      <button ${st.page<=1?'disabled':''} onclick="ERP.gotoPage('${entityKey}',${st.page-1})">‹</button>
+      <button ${st.page>=pages?'disabled':''} onclick="ERP.gotoPage('${entityKey}',${st.page+1})">›</button>
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('pageContent').innerHTML = html;
+}
+
+/* ---------- FORM MODAL GENÉRICO ---------- */
+let modalCtx = null;
+function openForm(entityKey, id){
+  const schema = SCHEMAS[entityKey];
+  const data = lsGet(K[entityKey],[]);
+  const item = id ? data.find(x=>x.id===id) : null;
+  modalCtx = {entityKey, id};
+  document.getElementById('modalTitle').textContent = (item?'Editar ':'Novo(a) ')+schema.title.replace(/s$/,'');
+  let html = '<div class="form-grid">';
+  schema.fields.forEach(f=>{
+    const val = item ? (item[f.k]!==undefined?item[f.k]:'') : '';
+    html += `<div class="field ${f.full?'full':''}"><label>${f.l}${f.req?' *':''}</label>`;
+    if(f.type==='select'){
+      const options = f.optionsFn ? f.optionsFn() : (f.options||[]).map(o=>({value:o,label:o}));
+      html += `<select id="f_${f.k}"><option value="">Selecione...</option>`;
+      options.forEach(o=> html += `<option value="${o.value}" ${o.value===val?'selected':''}>${o.label}</option>`);
+      html += '</select>';
+    } else if(f.type==='textarea'){
+      html += `<textarea id="f_${f.k}">${val}</textarea>`;
+    } else {
+      html += `<input type="${f.type||'text'}" id="f_${f.k}" value="${val}">`;
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalBackdrop').classList.add('show');
+}
+function closeModal(){ document.getElementById('modalBackdrop').classList.remove('show'); modalCtx=null; }
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+document.getElementById('modalBackdrop').addEventListener('click', e=>{ if(e.target.id==='modalBackdrop') closeModal(); });
+
+document.getElementById('modalSave').addEventListener('click', ()=>{
+  if(!modalCtx) return;
+  if(modalCtx.entityKey==='__caixa') return; // tratado pelo handler específico de caixa
+  const {entityKey, id} = modalCtx;
+  const schema = SCHEMAS[entityKey];
+  const obj = {};
+  let missing = null;
+  schema.fields.forEach(f=>{
+    const el = document.getElementById('f_'+f.k);
+    obj[f.k] = el ? el.value : '';
+    if(f.req && !obj[f.k]) missing = f.l;
+  });
+  if(missing){ toast('Preencha o campo obrigatório: '+missing, 'err'); return; }
+  const data = lsGet(K[entityKey],[]);
+  if(id){
+    const idx = data.findIndex(x=>x.id===id);
+    data[idx] = {...data[idx], ...obj, atualizadoEm: nowISO()};
+    audit('Alteração', schema.title, 'Registro '+id+' atualizado.');
+    toast(schema.title+' atualizado com sucesso.','ok');
+  } else {
+    obj.id = uid(); obj.criadoEm = nowISO();
+    data.push(obj);
+    audit('Inclusão', schema.title, 'Novo registro incluído.');
+    toast(schema.title+' cadastrado com sucesso.','ok');
+  }
+  lsSet(K[entityKey], data);
+  closeModal();
+  renderCrudPage(entityKey);
+});
+
+function deleteItem(entityKey, id){
+  if(!confirmDialog('Deseja realmente excluir este registro? Esta ação não pode ser desfeita.')) return;
+  const schema = SCHEMAS[entityKey];
+  let data = lsGet(K[entityKey],[]);
+  data = data.filter(x=>x.id!==id);
+  lsSet(K[entityKey], data);
+  audit('Exclusão', schema.title, 'Registro '+id+' excluído.');
+  toast('Registro excluído.','ok');
+  renderCrudPage(entityKey);
+}
+function setSearch(entityKey, val){ getTableState(entityKey).q = val; getTableState(entityKey).page=1; renderCrudPage(entityKey); }
+function sortBy(entityKey, key){
+  const st = getTableState(entityKey);
+  if(st.sortKey===key) st.sortDir *= -1; else { st.sortKey=key; st.sortDir=1; }
+  renderCrudPage(entityKey);
+}
+function gotoPage(entityKey, p){ getTableState(entityKey).page = p; renderCrudPage(entityKey); }
+
+/* ---------- EXPORTAÇÃO ---------- */
+function exportEntity(entityKey, format){
+  const schema = SCHEMAS[entityKey];
+  const data = lsGet(K[entityKey],[]);
+  if(!data.length){ toast('Não há dados para exportar.','err'); return; }
+  if(format==='csv'){
+    const cols = schema.columns.map(c=>c.k);
+    let csv = schema.columns.map(c=>c.l).join(';')+'\n';
+    data.forEach(item=> csv += cols.map(c=>('"'+(item[c]||'')+'"')).join(';')+'\n');
+    downloadFile(csv, entityKey+'.csv','text/csv');
+  } else if(format==='json'){
+    downloadFile(JSON.stringify(data,null,2), entityKey+'.json','application/json');
+  }
+  audit('Exportação', schema.title, 'Exportado em formato '+format.toUpperCase()+'.');
+}
+function downloadFile(content, filename, mime){
+  const blob = new Blob([content], {type:mime});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- CÁLCULOS FINANCEIROS ---------- */
+function sumBy(list, cond, key){ return list.filter(cond).reduce((s,i)=>s+(parseFloat(i[key])||0),0); }
+function monthKey(d){ const dt=new Date(d); return dt.getFullYear()+'-'+(dt.getMonth()+1); }
+function isThisMonth(d){ if(!d) return false; return monthKey(d)===monthKey(new Date()); }
+
+function computeIndicadores(){
+  const rec = lsGet(K.contasReceber,[]);
+  const pag = lsGet(K.contasPagar,[]);
+  const bancos = lsGet(K.bancos,[]);
+  const caixaMov = lsGet(K.caixaMov,[]);
+  const cartoes = lsGet(K.cartoes,[]);
+
+  const saldoBancos = sumBy(bancos, ()=>true, 'saldo');
+  const saldoCaixa = sumBy(caixaMov.filter(m=>m.tipo==='Entrada'), ()=>true,'valor') - sumBy(caixaMov.filter(m=>m.tipo!=='Entrada'), ()=>true,'valor');
+  const saldoAtual = saldoBancos + saldoCaixa;
+
+  const receitaMes = sumBy(rec, r=>isThisMonth(r.emissao||r.vencimento), 'valor');
+  const despesaMes = sumBy(pag, p=>isThisMonth(p.emissao||p.vencimento), 'valor');
+  const lucro = receitaMes - despesaMes;
+
+  const receberTotal = sumBy(rec, r=>r.status!=='Recebido' && r.status!=='Cancelado', 'valor');
+  const pagarTotal = sumBy(pag, p=>p.status!=='Pago' && p.status!=='Cancelado', 'valor');
+
+  const hoje = new Date().toISOString().slice(0,10);
+  const vencidosReceber = rec.filter(r=> r.status!=='Recebido' && r.vencimento && r.vencimento < hoje);
+  const inadimplencia = vencidosReceber.reduce((s,i)=>s+(parseFloat(i.valor)||0),0);
+  const inadimplenciaPerc = receberTotal ? (inadimplencia/receberTotal*100) : 0;
+
+  const margem = receitaMes ? (lucro/receitaMes*100) : 0;
+  const clientesAtivos = lsGet(K.clientes,[]).length || 1;
+  const ticketMedio = rec.length ? (sumBy(rec,()=>true,'valor')/rec.length) : 0;
+  const limiteCartoes = sumBy(cartoes,()=>true,'limite');
+  const usoCartoes = sumBy(cartoes,()=>true,'saldoUtilizado');
+  const liquidez = pagarTotal ? (saldoAtual+receberTotal)/pagarTotal : (saldoAtual>0?99:0);
+
+  return {saldoAtual, receitaMes, despesaMes, lucro, receberTotal, pagarTotal, inadimplencia, inadimplenciaPerc, margem, ticketMedio, liquidez, saldoBancos, saldoCaixa, limiteCartoes, usoCartoes};
+}
+
+/* ---------- DASHBOARD ---------- */
+function renderDashboard(){
+  const sess = getSession();
+  const ind = computeIndicadores();
+  const lanc = lsGet(K.lancamentos,[]).slice().sort((a,b)=> new Date(b.criadoEm||b.data) - new Date(a.criadoEm||a.data)).slice(0,6);
+  const rec = lsGet(K.contasReceber,[]);
+  const pag = lsGet(K.contasPagar,[]);
+  const vencendoReceber = rec.filter(r=>r.status!=='Recebido').sort((a,b)=>new Date(a.vencimento)-new Date(b.vencimento)).slice(0,5);
+  const vencendoPagar = pag.filter(p=>p.status!=='Pago').sort((a,b)=>new Date(a.vencimento)-new Date(b.vencimento)).slice(0,5);
+
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header">
+      <div><h1>Olá, ${sess?sess.nome||sess.usuario:''} 👋</h1><p>Visão geral da saúde financeira da empresa hoje, ${fmtDate(new Date().toISOString())}</p></div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="lbl">Saldo Atual</div><div class="val ${ind.saldoAtual>=0?'pos':'neg'}">${money(ind.saldoAtual)}</div><div class="delta">Bancos + Caixa</div></div>
+      <div class="kpi-card"><div class="lbl">Receita do Mês</div><div class="val pos">${money(ind.receitaMes)}</div><div class="delta">Emitidas no mês atual</div></div>
+      <div class="kpi-card"><div class="lbl">Despesas do Mês</div><div class="val neg">${money(ind.despesaMes)}</div><div class="delta">Emitidas no mês atual</div></div>
+      <div class="kpi-card"><div class="lbl">Lucro</div><div class="val ${ind.lucro>=0?'pos':'neg'}">${money(ind.lucro)}</div><div class="delta">Margem ${ind.margem.toFixed(1)}%</div></div>
+      <div class="kpi-card"><div class="lbl">Contas a Receber</div><div class="val">${money(ind.receberTotal)}</div><div class="delta">Em aberto</div></div>
+      <div class="kpi-card"><div class="lbl">Contas a Pagar</div><div class="val">${money(ind.pagarTotal)}</div><div class="delta">Em aberto</div></div>
+      <div class="kpi-card"><div class="lbl">Inadimplência</div><div class="val neg">${money(ind.inadimplencia)}</div><div class="delta">${ind.inadimplenciaPerc.toFixed(1)}% do total a receber</div></div>
+      <div class="kpi-card"><div class="lbl">Previsão Financeira</div><div class="val ${(ind.saldoAtual+ind.receberTotal-ind.pagarTotal)>=0?'pos':'neg'}">${money(ind.saldoAtual+ind.receberTotal-ind.pagarTotal)}</div><div class="delta">Saldo + a receber − a pagar</div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Últimos Lançamentos</h3>
+          ${lanc.length? '<ul class="list-mini">'+lanc.map(l=>`<li><span>${l.tipo} · ${l.categoria||'-'}</span><span class="mono">${money(l.valor)}</span></li>`).join('')+'</ul>' : '<div class="empty-state">Nenhum lançamento registrado ainda.</div>'}
+        </div>
+        <div class="card">
+          <h3>Metas Financeiras</h3>
+          <div class="list-mini">
+            <div style="margin-bottom:10px">Margem de lucro (meta 20%)<div class="progress-bar"><div style="width:${Math.max(0,Math.min(100,ind.margem/20*100))}%"></div></div></div>
+            <div>Liquidez (meta 1.5x)<div class="progress-bar"><div style="width:${Math.max(0,Math.min(100,ind.liquidez/1.5*100))}%"></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Contas a Receber — Próximos Vencimentos</h3>
+          ${vencendoReceber.length? '<ul class="list-mini">'+vencendoReceber.map(r=>`<li><span>${r.cliente||'-'}<br><small style="color:var(--text-dim)">${fmtDate(r.vencimento)}</small></span><span class="mono">${money(r.valor)}</span></li>`).join('')+'</ul>':'<div class="empty-state">Nada a receber.</div>'}
+        </div>
+        <div class="card">
+          <h3>Contas a Pagar — Próximos Vencimentos</h3>
+          ${vencendoPagar.length? '<ul class="list-mini">'+vencendoPagar.map(p=>`<li><span>${p.fornecedor||'-'}<br><small style="color:var(--text-dim)">${fmtDate(p.vencimento)}</small></span><span class="mono">${money(p.valor)}</span></li>`).join('')+'</ul>':'<div class="empty-state">Nada a pagar.</div>'}
+        </div>
+        <div class="card">
+          <h3>Avisos</h3>
+          <div class="list-mini">
+            ${ind.inadimplenciaPerc>10?'<li>⚠️ Inadimplência acima de 10%. Revise a política de crédito.</li>':''}
+            ${ind.saldoAtual<0?'<li>⚠️ Saldo atual negativo. Atenção ao fluxo de caixa.</li>':''}
+            ${(ind.inadimplenciaPerc<=10 && ind.saldoAtual>=0)?'<li>✅ Nenhum alerta crítico no momento.</li>':''}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- FLUXO DE CAIXA ---------- */
+function renderFluxoCaixa(){
+  const rec = lsGet(K.contasReceber,[]).filter(r=>r.status==='Recebido');
+  const pag = lsGet(K.contasPagar,[]).filter(p=>p.status==='Pago');
+  const lanc = lsGet(K.lancamentos,[]);
+  const movs = [];
+  rec.forEach(r=> movs.push({data:r.recebimento||r.vencimento, desc:'Recebimento — '+(r.cliente||''), valor:parseFloat(r.valor)||0, tipo:'Entrada'}));
+  pag.forEach(p=> movs.push({data:p.pagamento||p.vencimento, desc:'Pagamento — '+(p.fornecedor||''), valor:-(parseFloat(p.valor)||0), tipo:'Saída'}));
+  lanc.forEach(l=> movs.push({data:l.data, desc:l.tipo+' — '+(l.categoria||l.historico||''), valor: (l.tipo==='Despesa'?-1:1)*(parseFloat(l.valor)||0), tipo: l.tipo==='Despesa'?'Saída':'Entrada'}));
+  movs.sort((a,b)=> new Date(a.data)-new Date(b.data));
+
+  let saldo=0;
+  const rows = movs.map(m=>{ saldo+=m.valor; return {...m, saldo}; });
+  const entradas = movs.filter(m=>m.valor>0).reduce((s,i)=>s+i.valor,0);
+  const saidas = Math.abs(movs.filter(m=>m.valor<0).reduce((s,i)=>s+i.valor,0));
+  const saldoFinal = entradas-saidas;
+  const mesAtual = rows.filter(r=>isThisMonth(r.data));
+  const saldoMensal = mesAtual.reduce((s,i)=>s+i.valor,0);
+
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><h1>Fluxo de Caixa</h1><p>Movimentações consolidadas de contas a receber, a pagar e lançamentos</p></div>
+      <button class="btn btn-outline" onclick="window.print()">Imprimir</button></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="lbl">Entradas</div><div class="val pos">${money(entradas)}</div></div>
+      <div class="kpi-card"><div class="lbl">Saídas</div><div class="val neg">${money(saidas)}</div></div>
+      <div class="kpi-card"><div class="lbl">Saldo Total (Acumulado)</div><div class="val ${saldoFinal>=0?'pos':'neg'}">${money(saldoFinal)}</div></div>
+      <div class="kpi-card"><div class="lbl">Saldo do Mês</div><div class="val ${saldoMensal>=0?'pos':'neg'}">${money(saldoMensal)}</div></div>
+    </div>
+    <div class="table-wrap">
+    ${rows.length? `<table><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Saldo Acumulado</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${fmtDate(r.data)}</td><td>${r.desc}</td><td><span class="badge ${r.tipo==='Entrada'?'green':'red'}">${r.tipo}</span></td><td class="mono">${money(r.valor)}</td><td class="mono">${money(r.saldo)}</td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty-state">${ico('fluxo')}<div>Nenhuma movimentação registrada ainda. Cadastre contas a receber, a pagar ou lançamentos.</div></div>`}
+    </div>`;
+}
+
+/* ---------- CAIXA ---------- */
+function renderCaixa(){
+  const movs = lsGet(K.caixaMov,[]);
+  const saldo = movs.reduce((s,m)=> s + (m.tipo==='Entrada'?1:-1)*(parseFloat(m.valor)||0), 0);
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><h1>Caixa</h1><p>Controle de abertura, fechamento, sangrias e suprimentos</p></div>
+      <button class="btn btn-primary" onclick="ERP.openCaixaForm()">${ico('caixa')} Novo Movimento</button></div>
+    <div class="kpi-grid"><div class="kpi-card"><div class="lbl">Saldo Atual do Caixa</div><div class="val ${saldo>=0?'pos':'neg'}">${money(saldo)}</div></div></div>
+    <div class="table-wrap">
+    ${movs.length? `<table><thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Valor</th><th>Responsável</th><th>Ações</th></tr></thead><tbody>
+      ${movs.slice().reverse().map(m=>`<tr><td>${fmtDateTime(m.criadoEm)}</td><td><span class="badge ${m.tipo==='Entrada'?'green':m.tipo==='Sangria'?'amber':'gray'}">${m.tipo}</span></td><td>${m.categoria||'-'}</td><td class="mono">${money(m.valor)}</td><td>${m.responsavel||'-'}</td>
+      <td class="row-actions"><button onclick="ERP.deleteCaixaMov('${m.id}')">✕</button></td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty-state">${ico('caixa')}<div>Nenhum movimento de caixa registrado.</div></div>`}
+    </div>`;
+}
+function openCaixaForm(){
+  modalCtx = {entityKey:'__caixa'};
+  document.getElementById('modalTitle').textContent = 'Novo Movimento de Caixa';
+  document.getElementById('modalBody').innerHTML = `<div class="form-grid">
+    <div class="field"><label>Tipo</label><select id="cx_tipo"><option>Abertura</option><option>Entrada</option><option>Saída</option><option>Sangria</option><option>Suprimento</option><option>Fechamento</option></select></div>
+    <div class="field"><label>Valor (R$)</label><input type="number" id="cx_valor"></div>
+    <div class="field"><label>Categoria</label><input type="text" id="cx_categoria"></div>
+    <div class="field"><label>Responsável</label><input type="text" id="cx_responsavel" value="${getSession()?getSession().nome||'':''}"></div>
+  </div>`;
+  document.getElementById('modalBackdrop').classList.add('show');
+}
+function saveCaixaMov(){
+  const tipo = document.getElementById('cx_tipo').value;
+  const valor = parseFloat(document.getElementById('cx_valor').value)||0;
+  const categoria = document.getElementById('cx_categoria').value;
+  const responsavel = document.getElementById('cx_responsavel').value;
+  const movs = lsGet(K.caixaMov,[]);
+  const outTypes = ['Saída','Sangria','Fechamento'];
+  movs.push({id:uid(), tipo: outTypes.includes(tipo)?'Saída':'Entrada', tipoOriginal:tipo, valor, categoria, responsavel, criadoEm: nowISO()});
+  lsSet(K.caixaMov, movs);
+  audit('Inclusão','Caixa','Movimento de caixa: '+tipo+' — '+money(valor));
+  toast('Movimento de caixa registrado.','ok');
+  closeModal(); renderCaixa();
+}
+function deleteCaixaMov(id){
+  if(!confirmDialog('Excluir este movimento de caixa?')) return;
+  lsSet(K.caixaMov, lsGet(K.caixaMov,[]).filter(m=>m.id!==id));
+  audit('Exclusão','Caixa','Movimento '+id+' excluído.');
+  renderCaixa();
+}
+
+/* ---------- INDICADORES ---------- */
+function renderIndicadores(){
+  const ind = computeIndicadores();
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><h1>Indicadores Financeiros</h1><p>Métricas calculadas automaticamente a partir dos seus dados</p></div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="lbl">Receita do Mês</div><div class="val pos">${money(ind.receitaMes)}</div></div>
+      <div class="kpi-card"><div class="lbl">Despesa do Mês</div><div class="val neg">${money(ind.despesaMes)}</div></div>
+      <div class="kpi-card"><div class="lbl">Lucro Líquido</div><div class="val ${ind.lucro>=0?'pos':'neg'}">${money(ind.lucro)}</div></div>
+      <div class="kpi-card"><div class="lbl">Margem</div><div class="val">${ind.margem.toFixed(1)}%</div></div>
+      <div class="kpi-card"><div class="lbl">Ticket Médio</div><div class="val">${money(ind.ticketMedio)}</div></div>
+      <div class="kpi-card"><div class="lbl">Inadimplência</div><div class="val neg">${ind.inadimplenciaPerc.toFixed(1)}%</div></div>
+      <div class="kpi-card"><div class="lbl">Liquidez</div><div class="val">${ind.liquidez.toFixed(2)}x</div></div>
+      <div class="kpi-card"><div class="lbl">Rentabilidade</div><div class="val">${ind.receitaMes? ((ind.lucro/ind.receitaMes)*100).toFixed(1):'0.0'}%</div></div>
+      <div class="kpi-card"><div class="lbl">Limite de Cartões</div><div class="val">${money(ind.limiteCartoes)}</div></div>
+      <div class="kpi-card"><div class="lbl">Uso de Cartões</div><div class="val">${money(ind.usoCartoes)}</div></div>
+    </div>`;
+}
+
+/* ---------- RELATÓRIOS ---------- */
+function renderRelatorios(){
+  const sel = ['contasReceber','contasPagar','clientes','fornecedores','bancos','cartoes','centrosCustos','planoContas','lancamentos','orcamentos'];
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><h1>Relatórios</h1><p>Selecione um relatório para visualizar, imprimir ou exportar</p></div></div>
+    <div class="filters-row">
+      <select id="repSelect">${sel.map(k=>`<option value="${k}">${SCHEMAS[k].title}</option>`).join('')}</select>
+      <button class="btn btn-outline" onclick="ERP.exportEntity(document.getElementById('repSelect').value,'csv')">Exportar CSV</button>
+      <button class="btn btn-outline" onclick="ERP.exportEntity(document.getElementById('repSelect').value,'json')">Exportar JSON</button>
+      <button class="btn btn-outline" onclick="window.print()">Imprimir</button>
+      <button class="btn btn-primary" onclick="ERP.renderReportPreview()">Visualizar</button>
+    </div>
+    <div id="reportPreview"></div>`;
+  renderReportPreview();
+  document.getElementById('repSelect').addEventListener('change', renderReportPreview);
+}
+function renderReportPreview(){
+  const key = document.getElementById('repSelect').value;
+  const schema = SCHEMAS[key];
+  const data = lsGet(K[key],[]);
+  let html = `<div class="table-wrap">`;
+  if(!data.length){ html += `<div class="empty-state">${ico('relatorios')}<div>Nenhum dado disponível para este relatório.</div></div>`; }
+  else{
+    html += '<table><thead><tr>'+schema.columns.map(c=>`<th>${c.l}</th>`).join('')+'</tr></thead><tbody>';
+    data.forEach(item=>{
+      html += '<tr>'+schema.columns.map(c=>{
+        let v=item[c.k];
+        if(c.money) v=money(v); else if(c.date) v=fmtDate(v); else v=v||'-';
+        return `<td>${v}</td>`;
+      }).join('')+'</tr>';
+    });
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+  document.getElementById('reportPreview').innerHTML = html;
+}
+
+/* ---------- USUÁRIOS (checagem admin) ---------- */
+function renderUsuariosGuard(){
+  const sess = getSession();
+  if(!sess || sess.perfil!=='Administrador'){
+    document.getElementById('pageContent').innerHTML = `<div class="empty-state">${ico('usuarios')}<div>Acesso restrito ao perfil Administrador.</div></div>`;
+    return false;
+  }
+  return true;
+}
+
+/* ---------- CONFIGURAÇÕES ---------- */
+function renderConfiguracoes(){
+  if(!renderUsuariosGuard()) return;
+  const cfg = getConfig();
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><h1>Configurações</h1><p>Personalize os dados da empresa e preferências do sistema</p></div></div>
+    <div class="card" style="max-width:560px">
+      <div class="form-grid">
+        <div class="field full"><label>Nome da Empresa</label><input type="text" id="cfg_empresa" value="${cfg.empresa||''}"></div>
+        <div class="field full"><label>Logo (URL da imagem)</label><input type="text" id="cfg_logo" value="${cfg.logo||''}" placeholder="https://..."></div>
+        <div class="field"><label>Tema</label><select id="cfg_tema"><option value="light" ${cfg.tema==='light'?'selected':''}>Claro</option><option value="dark" ${cfg.tema==='dark'?'selected':''}>Escuro</option></select></div>
+        <div class="field"><label>Idioma</label><select id="cfg_idioma"><option value="pt-BR" ${cfg.idioma==='pt-BR'?'selected':''}>Português (BR)</option><option value="en-US" ${cfg.idioma==='en-US'?'selected':''}>English (US)</option><option value="es-ES" ${cfg.idioma==='es-ES'?'selected':''}>Español</option></select></div>
+        <div class="field"><label>Moeda</label><select id="cfg_moeda"><option value="BRL" ${cfg.moeda==='BRL'?'selected':''}>Real (R$)</option><option value="USD" ${cfg.moeda==='USD'?'selected':''}>Dólar (US$)</option><option value="EUR" ${cfg.moeda==='EUR'?'selected':''}>Euro (€)</option></select></div>
+      </div>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="ERP.saveConfig()">Salvar Configurações</button></div>
+    </div>`;
+}
+function saveConfig(){
+  const cfg = {
+    empresa: document.getElementById('cfg_empresa').value || 'Omnia ERP',
+    logo: document.getElementById('cfg_logo').value,
+    tema: document.getElementById('cfg_tema').value,
+    idioma: document.getElementById('cfg_idioma').value,
+    moeda: document.getElementById('cfg_moeda').value,
+  };
+  lsSet(K.configuracoes, cfg);
+  document.body.setAttribute('data-theme', cfg.tema);
+  localStorage.setItem(LS_PREFIX+'theme', cfg.tema);
+  document.getElementById('sidebarBrand').textContent = cfg.empresa;
+  audit('Alteração','Configurações','Configurações do sistema atualizadas.');
+  toast('Configurações salvas com sucesso.','ok');
+}
+
+/* ---------- BACKUP / RESTAURAR ---------- */
+function renderBackup(){
+  if(!renderUsuariosGuard()) return;
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><h1>Backup</h1><p>Gere um arquivo completo com todos os dados do sistema</p></div></div>
+    <div class="card" style="max-width:520px">
+      <p style="color:var(--text-dim);font-size:13.5px;margin-top:0">O backup inclui todos os cadastros, lançamentos, usuários e configurações armazenados no LocalStorage deste navegador.</p>
+      <button class="btn btn-primary" onclick="ERP.gerarBackup()">${ico('backup')} Gerar Backup</button>
+    </div>`;
+}
+function gerarBackup(){
+  const dump = {};
+  Object.values(K).forEach(k=>{ if(k!=='session') dump[k] = lsGet(k, null); });
+  const ts = new Date();
+  const stamp = ts.toISOString().slice(0,19).replace('T','-').replace(/:/g,'-');
+  const filename = `backup-financeiro-${stamp}.json`;
+  downloadFile(JSON.stringify(dump,null,2), filename, 'application/json');
+  audit('Backup','Backup','Backup completo gerado: '+filename);
+  toast('Backup realizado com sucesso.','ok');
+}
+function renderRestaurar(){
+  if(!renderUsuariosGuard()) return;
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><h1>Restaurar Backup</h1><p>Restaure um backup previamente gerado pelo sistema</p></div></div>
+    <div class="card" style="max-width:520px">
+      <p style="color:var(--text-dim);font-size:13.5px;margin-top:0">Atenção: restaurar um backup substitui todos os dados atuais do sistema.</p>
+      <button class="btn btn-primary" onclick="document.getElementById('restoreFileInput').click()">${ico('restaurar')} Selecionar Arquivo JSON</button>
+      <div id="restoreMsg" style="margin-top:14px;font-size:13px"></div>
+    </div>`;
+}
+document.getElementById('restoreFileInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      if(typeof parsed !== 'object' || parsed===null) throw new Error('Formato inválido.');
+      if(!confirmDialog('Confirma a restauração deste backup? Todos os dados atuais serão substituídos.')) return;
+      Object.keys(parsed).forEach(k=> lsSet(k, parsed[k]));
+      audit('Restauração','Backup','Backup restaurado a partir de arquivo: '+file.name);
+      document.getElementById('restoreMsg').innerHTML = '<span style="color:var(--emerald)">Backup restaurado com sucesso.</span>';
+      toast('Backup restaurado com sucesso.','ok');
+      setTimeout(()=>{ buildSidebar(); navigate('dashboard'); }, 800);
+    }catch(err){
+      document.getElementById('restoreMsg').innerHTML = '<span style="color:var(--red)">Erro ao restaurar: arquivo inválido ou corrompido. ('+err.message+')</span>';
+      toast('Erro ao restaurar backup.','err');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+
+/* ---------- SOBRE ---------- */
+function renderSobre(){
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><h1>Sobre o Sistema</h1></div></div>
+    <div class="card" style="max-width:560px">
+      <h3>${getConfig().empresa||'Omnia ERP'}</h3>
+      <p style="color:var(--text-dim);font-size:13.5px">Sistema de Gestão Financeira Empresarial (ERP Financeiro) desenvolvido em HTML5, CSS3 e JavaScript puro, com persistência local via LocalStorage — sem frameworks, sem back-end e sem dependências externas.</p>
+      <ul class="list-mini">
+        <li><span>Versão</span><span>1.0.0</span></li>
+        <li><span>Tecnologia</span><span>HTML + CSS + JS puro</span></li>
+        <li><span>Persistência</span><span>LocalStorage</span></li>
+      </ul>
+    </div>`;
+}
+
+/* ---------- ROTEADOR PRINCIPAL ---------- */
+function render(route){
+  if(CRUD_ROUTES.includes(route)) return renderCrudPage(route);
+  switch(route){
+    case 'dashboard': return renderDashboard();
+    case 'fluxoCaixa': return renderFluxoCaixa();
+    case 'caixa': return renderCaixa();
+    case 'indicadores': return renderIndicadores();
+    case 'relatorios': return renderRelatorios();
+    case 'configuracoes': return renderConfiguracoes();
+    case 'backup': return renderBackup();
+    case 'restaurar': return renderRestaurar();
+    case 'sobre': return renderSobre();
+    default: return renderDashboard();
+  }
+}
+const CRUD_ROUTES = Object.keys(SCHEMAS);
+
+/* ---------- INICIALIZAÇÃO DO APP ---------- */
+function startApp(){
+  const sess = getSession();
+  document.getElementById('app').classList.add('show');
+  document.getElementById('userName').textContent = sess.nome || sess.usuario;
+  document.getElementById('userAv').textContent = (sess.nome||sess.usuario||'A').charAt(0).toUpperCase();
+  document.getElementById('sidebarBrand').textContent = getConfig().empresa || 'Omnia ERP';
+  const collapsedSaved = localStorage.getItem(LS_PREFIX+K.sidebarState)==='1';
+  if(collapsedSaved){ document.getElementById('sidebar').classList.add('collapsed'); document.getElementById('mainArea').classList.add('collapsed'); }
+  buildSidebar();
+  navigate('dashboard');
+  resetInactivity();
+}
+
+/* ---------- EXPOSIÇÃO GLOBAL (para handlers inline) ---------- */
+window.ERP = {
+  openForm, deleteItem, setSearch, sortBy, gotoPage, exportEntity,
+  openCaixaForm, saveCaixaMov, deleteCaixaMov, renderReportPreview,
+  saveConfig, gerarBackup
+};
+// substitui o botão de salvar do modal de caixa quando aplicável
+const origSave = document.getElementById('modalSave');
+origSave.addEventListener('click', function(){
+  if(modalCtx && modalCtx.entityKey==='__caixa'){ saveCaixaMov(); }
+});
+
+})();
+</script>
+</body>
+</html>
