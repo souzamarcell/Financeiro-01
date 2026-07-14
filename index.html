@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Omnia ERP · Gestão Financeira</title>
+<title>GráficosNet ERP · Gestão Financeira</title>
 <!-- ============================================================
-     OMNIA ERP FINANCEIRO
+     GráficosNet ERP FINANCEIRO
      HTML5 + CSS3 + JavaScript puro (ES6+) — sem frameworks
      Persistência 100% em LocalStorage
 ============================================================ -->
@@ -268,7 +268,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="login-logo">
       <svg class="svg-ico" style="stroke:#fff;width:26px;height:26px" viewBox="0 0 24 24"><path d="M3 12l4-8 4 8 4-8 4 8"/><path d="M3 18h18"/></svg>
     </div>
-    <div class="login-title" id="loginBrandName">Omnia ERP</div>
+    <div class="login-title" id="loginBrandName">GráficosNet ERP</div>
     <div class="login-sub">Gestão Financeira Empresarial</div>
     <div class="login-error" id="loginError">Usuário ou senha inválidos.</div>
     <form id="loginForm">
@@ -276,7 +276,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="field"><label>Senha</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
       <button type="submit" class="btn btn-primary btn-block">Entrar</button>
     </form>
-    <div class="login-hint">Usuário inicial: <b>admin</b> · Senha: <b>J@12D#03</b></div>
+    <div class="login-hint">Usuário inicial: <b>Rodrigo</b> · Senha: <b>123</b></div>
   </div>
 </div>
 
@@ -286,7 +286,7 @@ tbody tr:last-child td{border-bottom:none;}
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-head">
       <div class="logo-sq"><svg class="svg-ico" style="stroke:#fff" viewBox="0 0 24 24"><path d="M3 12l4-8 4 8 4-8 4 8"/><path d="M3 18h18"/></svg></div>
-      <div class="brand" id="sidebarBrand">Omnia ERP</div>
+      <div class="brand" id="sidebarBrand">GráficosNet ERP</div>
       <button class="sidebar-toggle-btn" id="collapseBtn" title="Recolher menu"><svg class="svg-ico" style="stroke:#DCE6F0" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
     </div>
     <nav class="sidebar-nav" id="sidebarNav"></nav>
@@ -305,7 +305,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="search-results" id="searchResults"></div>
       </div>
       <button class="icon-btn" id="themeBtn" title="Alternar tema"><svg class="svg-ico" viewBox="0 0 24 24"><path d="M12 3v1M12 20v1M4.2 4.2l.7.7M18.4 18.4l.7.7M3 12h1M20 12h1M4.2 19.8l.7-.7M18.4 5.6l.7-.7"/><circle cx="12" cy="12" r="4"/></svg></button>
-      <div class="user-chip" id="logoutBtn"><div class="av" id="userAv">A</div><span id="userName">admin</span></div>
+      <div class="user-chip" id="logoutBtn"><div class="av" id="userAv">A</div><span id="userName">Rodrigo</span></div>
     </header>
     <main class="content" id="pageContent"></main>
   </div>
@@ -353,16 +353,16 @@ function money(v){ v = Number(v)||0; const cur = getConfig().moeda||'BRL'; const
 /* ---------- SEED INICIAL ---------- */
 function seed(){
   if(lsGet(K.usuarios,null)===null){
-    lsSet(K.usuarios,[{id:uid(),usuario:'admin',senha:'J@12D#03',nome:'Administrador',perfil:'Administrador',status:'Ativo',criadoEm:nowISO()}]);
+    lsSet(K.usuarios,[{id:uid(),usuario:'Rodrigo',senha:'123',nome:'Rodrigo Martins',perfil:'Administrador',status:'Ativo',criadoEm:nowISO()}]);
   }
   if(lsGet(K.configuracoes,null)===null){
-    lsSet(K.configuracoes,{empresa:'Omnia ERP', logo:'', tema:'light', idioma:'pt-BR', moeda:'BRL'});
+    lsSet(K.configuracoes,{empresa:'GráficosNet ERP', logo:'', tema:'light', idioma:'pt-BR', moeda:'BRL'});
   }
   ['clientes','fornecedores','planoContas','centrosCustos','categorias','contasReceber','contasPagar','bancos','cartoes','conciliacoes','lancamentos','orcamentos','caixaMov','auditoria'].forEach(k=>{
     if(lsGet(K[k],null)===null) lsSet(K[k],[]);
   });
 }
-function getConfig(){ return lsGet(K.configuracoes,{empresa:'Omnia ERP',tema:'light',moeda:'BRL'}); }
+function getConfig(){ return lsGet(K.configuracoes,{empresa:'GráficosNet ERP',tema:'light',moeda:'BRL'}); }
 
 /* ---------- AUDITORIA ---------- */
 function audit(acao, tela, detalhe){
@@ -401,7 +401,7 @@ seed();
   const theme = localStorage.getItem(LS_PREFIX+'theme') || cfg.tema || 'light';
   document.body.setAttribute('data-theme', theme);
 })();
-document.getElementById('loginBrandName').textContent = getConfig().empresa || 'Omnia ERP';
+document.getElementById('loginBrandName').textContent = getConfig().empresa || 'GráficosNet ERP';
 
 document.getElementById('loginForm').addEventListener('submit', function(e){
   e.preventDefault();
@@ -525,7 +525,7 @@ function navigate(key){
   if(key==='logout'){ if(confirmDialog('Deseja realmente sair do sistema?')) doLogout(); return; }
   currentRoute = key;
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.nav===key));
-  document.getElementById('breadcrumb').innerHTML = 'Omnia ERP <span style="opacity:.5">/</span> <b>'+(MENU_LABELS[key]||key)+'</b>';
+  document.getElementById('breadcrumb').innerHTML = 'GráficosNet ERP <span style="opacity:.5">/</span> <b>'+(MENU_LABELS[key]||key)+'</b>';
   render(key);
   window.scrollTo(0,0);
 }
@@ -1175,7 +1175,7 @@ function renderConfiguracoes(){
 }
 function saveConfig(){
   const cfg = {
-    empresa: document.getElementById('cfg_empresa').value || 'Omnia ERP',
+    empresa: document.getElementById('cfg_empresa').value || 'GráficosNet ERP',
     logo: document.getElementById('cfg_logo').value,
     tema: document.getElementById('cfg_tema').value,
     idioma: document.getElementById('cfg_idioma').value,
@@ -1247,7 +1247,7 @@ function renderSobre(){
   document.getElementById('pageContent').innerHTML = `
     <div class="page-header"><div><h1>Sobre o Sistema</h1></div></div>
     <div class="card" style="max-width:560px">
-      <h3>${getConfig().empresa||'Omnia ERP'}</h3>
+      <h3>${getConfig().empresa||'GráficosNet ERP'}</h3>
       <p style="color:var(--text-dim);font-size:13.5px">Sistema de Gestão Financeira Empresarial (ERP Financeiro) desenvolvido em HTML5, CSS3 e JavaScript puro, com persistência local via LocalStorage — sem frameworks, sem back-end e sem dependências externas.</p>
       <ul class="list-mini">
         <li><span>Versão</span><span>1.0.0</span></li>
@@ -1281,7 +1281,7 @@ function startApp(){
   document.getElementById('app').classList.add('show');
   document.getElementById('userName').textContent = sess.nome || sess.usuario;
   document.getElementById('userAv').textContent = (sess.nome||sess.usuario||'A').charAt(0).toUpperCase();
-  document.getElementById('sidebarBrand').textContent = getConfig().empresa || 'Omnia ERP';
+  document.getElementById('sidebarBrand').textContent = getConfig().empresa || 'GráficosNet ERP';
   const collapsedSaved = localStorage.getItem(LS_PREFIX+K.sidebarState)==='1';
   if(collapsedSaved){ document.getElementById('sidebar').classList.add('collapsed'); document.getElementById('mainArea').classList.add('collapsed'); }
   buildSidebar();
